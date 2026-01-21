@@ -138,6 +138,55 @@ class Detect(nn.Module):
         scores = torch.cat([cls_head[i](x[i]).view(bs, self.nc, -1) for i in range(self.nl)], dim=-1)
         return dict(boxes=boxes, scores=scores, feats=x)
 
+    # def forward_head(
+    #     self,
+    #     x: list[torch.Tensor],
+    #     box_head: torch.nn.Module = None,
+    #     cls_head: torch.nn.Module = None
+    # ) -> dict[str, torch.Tensor]:
+    #     """Concatenates and returns predicted bounding boxes and class probabilities."""
+    #     if box_head is None or cls_head is None:  # for fused inference
+    #         return dict()
+        
+    #     bs = x[0].shape[0]  # batch size
+
+    #     boxes_list = []
+    #     scores_list = []
+    #     head_ids_list = []
+    #     print("aaaaaaaaaaaaaaaaaaaaa")
+    #     for i in range(self.nl):
+    #         # box branch
+    #         b = box_head[i](x[i])                     # [bs, 4*reg_max, Hi, Wi]
+    #         b = b.view(bs, 4 * self.reg_max, -1)      # [bs, 4*reg_max, Ni]
+
+    #         # cls branch
+    #         s = cls_head[i](x[i])                     # [bs, nc, Hi, Wi]
+    #         s = s.view(bs, self.nc, -1)               # [bs, nc, Ni]
+
+    #         Ni = b.shape[-1]
+
+    #         # head id: [bs, 1, Ni]
+    #         head_id = torch.full(
+    #             (bs, 1, Ni),
+    #             i,
+    #             device=b.device,
+    #             dtype=b.dtype
+    #         )
+
+    #         boxes_list.append(b)
+    #         scores_list.append(s)
+    #         head_ids_list.append(head_id)
+
+    #     boxes = torch.cat(boxes_list, dim=-1)         # [bs, 4*reg_max, N]
+    #     scores = torch.cat(scores_list, dim=-1)       # [bs, nc, N]
+    #     head_ids = torch.cat(head_ids_list, dim=-1)   # [bs, 1, N]
+    #     return dict(
+    #         boxes=boxes,
+    #         scores=scores,
+    #         feats=x,
+    #         head_ids=head_ids
+    #     )
+
     def forward(
         self, x: list[torch.Tensor]
     ) -> dict[str, torch.Tensor] | torch.Tensor | tuple[torch.Tensor, dict[str, torch.Tensor]]:

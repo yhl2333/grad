@@ -50,6 +50,7 @@ class DetectionPredictor(BasePredictor):
             >>> results = predictor.predict("path/to/image.jpg")
             >>> processed_results = predictor.postprocess(preds, img, orig_imgs)
         """
+        # print("...............")
         save_feats = getattr(self, "_feats", None) is not None
         preds = nms.non_max_suppression(
             preds,
