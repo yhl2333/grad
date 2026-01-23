@@ -9,6 +9,7 @@ from pathlib import Path
 
 import torch
 import torch.nn as nn
+from .AddModules import *
 
 from ultralytics.nn.autobackend import check_class_names
 from ultralytics.nn.modules import (
@@ -286,7 +287,7 @@ class BaseModel(torch.nn.Module):
         self = super()._apply(fn)
         m = self.model[-1]  # Detect()
         if isinstance(
-            m, Detect
+            m, Detect,Detect_PPA
         ):  # includes all Detect subclasses like Segment, Pose, OBB, WorldDetect, YOLOEDetect, YOLOESegment
             m.stride = fn(m.stride)
             m.anchors = fn(m.anchors)
@@ -394,7 +395,7 @@ class DetectionModel(BaseModel):
 
         # Build strides
         m = self.model[-1]  # Detect()
-        if isinstance(m, Detect):  # includes all Detect subclasses like Segment, Pose, OBB, YOLOEDetect, YOLOESegment
+        if isinstance(m, Detect, Detect_PPA):  # includes all Detect subclasses like Segment, Pose, OBB, YOLOEDetect, YOLOESegment
             s = 256  # 2x min stride
             m.inplace = self.inplace
 
@@ -1650,6 +1651,10 @@ def parse_model(d, ch, verbose=True):
             c2 = args[1] if args[3] else args[1] * 4
         elif m is torch.nn.BatchNorm2d:
             args = [ch[f]]
+        elif m in {EUCB}:
+            c2 = ch[f]
+            args = [c2, *args]
+
         elif m is Concat:
             c2 = sum(ch[x] for x in f)
         elif m in frozenset(
@@ -1788,7 +1793,7 @@ def guess_model_task(model):
                 return "pose"
             elif isinstance(m, OBB):
                 return "obb"
-            elif isinstance(m, (Detect, WorldDetect, YOLOEDetect, v10Detect)):
+            elif isinstance(m, (Detect, WorldDetect, YOLOEDetect, v10Detect, Detect_PPA)):
                 return "detect"
 
     # Guess from model filename
