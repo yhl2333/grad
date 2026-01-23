@@ -9,7 +9,7 @@ def main():
     # 可选：yolo11n.pt / yolo11s.pt / yolo11m.pt / yolo11l.pt
     # model = YOLO(pretrained="./pretrained/yolo11n.pt")
     
-    model = YOLO(model = "./ultralytics/cfg/models/11/yolo11n_new.yaml")
+    model = YOLO(model = "ultralytics/cfg/models/11/yolo11n-Detect_PPA.yaml")
     model.load("./pretrained/yolo11n.pt")
 
 
