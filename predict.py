@@ -39,8 +39,8 @@ def print_head_params(model: YOLO):
 
 
 # 1. 加载模型（换成你自己的 .pt 也可以）
-model = YOLO("ultralytics/runs/detect/train28/weights/best.pt")
-print_head_params(model)
+model = YOLO("runs/detect/v6.4_p2_n_cl3_640_EUCB/weights/best.pt")
+# print_head_params(model)
 # 2. 图片目录
 # "./testdet/jpg"
 img_dir = Path("./testdet/jpg")
