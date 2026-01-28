@@ -11,7 +11,7 @@ from ..utils.ops import xywh2ltwh
 from .basetrack import BaseTrack, TrackState
 from .utils import matching
 from .utils.kalman_filter import KalmanFilterXYAH
-
+from .utils.gmc import GMC
 
 class STrack(BaseTrack):
     """Single object tracking representation that uses Kalman filtering for state estimation.
@@ -273,7 +273,7 @@ class BYTETracker:
         self.tracked_stracks = []  # type: list[STrack]
         self.lost_stracks = []  # type: list[STrack]
         self.removed_stracks = []  # type: list[STrack]
-
+        self.gmc = GMC(method=args.gmc_method)
         self.frame_id = 0
         self.args = args
         self.max_time_lost = int(frame_rate / 30.0 * args.track_buffer)

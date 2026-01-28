@@ -41,9 +41,22 @@ def print_head_params(model: YOLO):
 # 1. 加载模型（换成你自己的 .pt 也可以）
 model = YOLO("runs/detect/v6.4_p2_n_cl3_640_EUCB/weights/best.pt")
 # print_head_params(model)
+
+print("before:", model.names)
+
+# ✅ 正确修改方式
+model.model.names = {
+    0: "people",
+    1: "bike",
+    2: "tricycle",
+    3: "car"
+}
+
+print("after:", model.model.names)
+
 # 2. 图片目录
 # "./testdet/jpg"
-img_dir = Path("./testdet/jpg")
+img_dir = Path("runs/detect/track4/000514.jpg")
 
 # 3. 推理并保存结果
 results = model(
@@ -54,4 +67,3 @@ results = model(
 )
 
 
-print("Done! Results saved to runs/detect/predict/")

@@ -91,6 +91,10 @@ def on_predict_postprocess_end(predictor: object, persist: bool = False) -> None
 
         det = (result.obb if is_obb else result.boxes).cpu().numpy()
         tracks = tracker.update(det, result.orig_img, getattr(result, "feats", None))
+        # print("==== TRACKS ====")
+        # print(tracks)
+        # print("tracks shape:", tracks.shape)
+
         if len(tracks) == 0:
             continue
         idx = tracks[:, -1].astype(int)
@@ -98,6 +102,10 @@ def on_predict_postprocess_end(predictor: object, persist: bool = False) -> None
 
         update_args = {"obb" if is_obb else "boxes": torch.as_tensor(tracks[:, :-1])}
         predictor.results[i].update(**update_args)
+        # print("after track===========",len(predictor.results[i]))
+        # res = predictor.results[i]
+        # for k in range(len(res.boxes)):
+        #     print(res.boxes[k])
 
 
 def register_tracker(model: object, persist: bool) -> None:
