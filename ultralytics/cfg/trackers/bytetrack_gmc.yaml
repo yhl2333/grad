@@ -16,3 +16,4 @@ fuse_score: True # (bool) Fuse detection score with motion/IoU for matching; sta
 
 gmc_method: orb       # ⭐ 关键：启用 SIFT
 
+with_reid: true # (bool) Enable ReID model use; needs extra model and compute

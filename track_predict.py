@@ -5,7 +5,7 @@ from pathlib import Path
 
 
 # 1. 加载模型（换成你自己的 .pt 也可以）
-model = YOLO("/disk2/yhl/ultralytics/ultralytics/runs/detect/p2_n_cl3_640/weights/best.pt")
+model = YOLO("/disk2/yhl/ultralytics/runs/detect/v6.4_pl3/weights/best.pt")
 
 # ✅ 正确修改方式
 model.model.names = {
@@ -18,14 +18,14 @@ model.model.names = {
 
 # 2. 图片目录
 # "./testdet/jpg"
-img_dir = Path("experient_fig/bytetrack_workbad")
+img_dir = Path("/disk2/yhl/ultralytics/experient_fig/track/天桥右1.mp4")
 
 # 3. 推理并保存结果
 results = model.track(
     source=str(img_dir),
     conf=0.25,
     save=True,
-    tracker ="bytetrack_gmc.yaml",
+    tracker ="botsort.yaml",
     persist=True,
 
 )

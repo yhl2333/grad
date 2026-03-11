@@ -1584,6 +1584,8 @@ def parse_model(d, ch, verbose=True):
             C2fCIB,
             A2C2f,
             C3k2_DEConv,
+            SimAM,
+            C3k2_SimAM,
         }
     )
     repeat_modules = frozenset(  # modules with 'repeat' arguments
@@ -1677,6 +1679,9 @@ def parse_model(d, ch, verbose=True):
                 m.legacy = legacy
         elif m is v10Detect:
             args.append([ch[x] for x in f])
+        elif m in {EUCB}:
+            c2 = ch[f]
+            args = [c2, *args]
         elif m is ImagePoolingAttn:
             args.insert(1, [ch[x] for x in f])  # channels as second arg
         elif m is RTDETRDecoder:  # special case, channels arg must be passed in index 1
