@@ -8,8 +8,12 @@ from ultralytics import YOLO
 # ultralytics/runs/detect/n_cl3_640/weights/best.pt
 # /disk2/yhl/ultralytics/runs/detect/v6.4_n_p2_shanp5_cl3_SimAM_EUCB/weights/best.pt
 # /disk2/yhl/ultralytics/runs/detect/v6.4_p2_n_cl3_640/weights/best.pt
+# runs/detect/v6.4_n_p2_shanp5_cl3_SimAM/weights/best.pt
+# runs/detect/v6.4_n_p2_cl3_SimAM/weights/best.pt
+# runs/detect/v6.4_p2_n_cl3_640_EUCB/weights/best.pt
+# /disk2/yhl/ultralytics/runs/detect/v6.4_n_p2shanp5_cl3/weights/best.pt
 # 加载模型
-model = YOLO("ultralytics/runs/detect/n_cl3_640/weights/best.pt")
+model = YOLO("runs/detect/v6.4_p2_n_cl3_640/weights/best.pt")
 net = model.model
 
 # 存储特征图
@@ -23,18 +27,18 @@ def get_feature(name):
 
 
 # 注册hook (P3 P4 P5层，根据模型结构可能略有不同)
-net.model[16].register_forward_hook(get_feature("yolo11n_P3_7_1"))
-net.model[19].register_forward_hook(get_feature("yolo11n_P4"))
-net.model[22].register_forward_hook(get_feature("yolo11n_P5"))
-# net.model[19].register_forward_hook(get_feature("yolo11n_P2_7"))
-# net.model[22].register_forward_hook(get_feature("yolo11n_P3_7"))
-# net.model[25].register_forward_hook(get_feature("yolo11n_P4_7"))
+# net.model[16].register_forward_hook(get_feature("yolov11n_P3"))
+# net.model[19].register_forward_hook(get_feature("yolo11n_P4"))
+# net.model[22].register_forward_hook(get_feature("yolo11n_P5"))
+net.model[19].register_forward_hook(get_feature("yolov11n_P2_1"))
+# net.model[22].register_forward_hook(get_feature("yolov11n_P2_p3_1"))
+# net.model[25].register_forward_hook(get_feature("yolo11n_P4_10"))
 
 # experient_fig/yolo11n/Snipaste_2026-01-20_14-00-47.png
 # experient_fig/bytetrack_workbad/000508.jpg
 # experient_fig/yolo11n/0000003_00231_d_0000016.jpg
 # 读取图片
-img = cv2.imread("experient_fig/yolo11n/0000003_00231_d_0000016.jpg")
+img = cv2.imread("experient_fig/yolo11n/0000074_13313_d_0000026.jpg")
 img = cv2.resize(img, (640,640))
 img = img[:,:,::-1] / 255.0
 img = np.transpose(img,(2,0,1))

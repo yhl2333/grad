@@ -490,8 +490,8 @@ import os
 # -----------------------------
 # 路径
 # -----------------------------
-img1_path = "experient_fig/sift/nearsift/Snipaste_2026-03-10_17-10-21.png"
-img2_path = "experient_fig/sift/nearsift/Snipaste_2026-03-10_17-11-18.png"
+img1_path = "experient_fig/sift/000505.jpg"
+img2_path = "experient_fig/sift/000517.jpg"
 save_dir = "experient_fig/sift/siftResult"
 
 os.makedirs(save_dir, exist_ok=True)

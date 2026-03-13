@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from ast import arg
 from typing import Any
 
 import numpy as np
@@ -74,6 +75,11 @@ class STrack(BaseTrack):
         self.cls = cls
         self.idx = xywh[-1]
         self.angle = xywh[4] if len(xywh) == 6 else None
+        self.is_occluded = False          # 当前是否判为遮挡
+        self.occluded_frames = 0          # 连续遮挡帧数
+        self.lost_frames = 0              # 连续丢失帧数
+        self.track_conf = float(score)    # 轨迹级置信度，不等于单帧检测分数
+        self.last_det_score = float(score)
 
     def predict(self):
         """Predict the next state (mean and covariance) of the object using the Kalman filter."""
@@ -144,6 +150,12 @@ class STrack(BaseTrack):
         self.cls = new_track.cls
         self.angle = new_track.angle
         self.idx = new_track.idx
+        # STrack.re_activate() 末尾补
+        self.is_occluded = False
+        self.occluded_frames = 0
+        self.lost_frames = 0
+        self.last_det_score = float(new_track.score)
+        self.track_conf = 0.8 * self.track_conf + 0.2 * float(new_track.score)
 
     def update(self, new_track: STrack, frame_id: int):
         """Update the state of a matched track.
@@ -172,6 +184,12 @@ class STrack(BaseTrack):
         self.cls = new_track.cls
         self.angle = new_track.angle
         self.idx = new_track.idx
+        # STrack.update() 末尾补
+        self.is_occluded = False
+        self.occluded_frames = 0
+        self.lost_frames = 0
+        self.last_det_score = float(new_track.score)
+        self.track_conf = 0.8 * self.track_conf + 0.2 * float(new_track.score)
 
     def convert_coords(self, tlwh: np.ndarray) -> np.ndarray:
         """Convert a bounding box's top-left-width-height format to its x-y-aspect-height equivalent."""
@@ -276,9 +294,24 @@ class BYTETracker:
         self.gmc = GMC(method=args.gmc_method)
         self.frame_id = 0
         self.args = args
+        self.bool_adaptive_thresh = bool(getattr(args, "adaptive_thresh", False))
+        self.adaptive_thresh = AdaptiveThresh(
+            init_high=args.track_high_thresh, beta=args.beta, high_min=args.high_min, 
+                high_max=args.high_max,
+                low_ratio=args.low_ratio, 
+                new_offset=args.new_offset
+            )
+
         self.max_time_lost = int(frame_rate / 30.0 * args.track_buffer)
         self.kalman_filter = self.get_kalmanfilter()
         self.reset_id()
+        # BYTETracker.__init__() 里新增
+        self.occlusion_iou_thresh = getattr(args, "occlusion_iou_thresh", 0.35)
+        self.short_reactivate_frames = getattr(args, "short_reactivate_frames", 12)
+        self.reactivate_match_thresh = getattr(args, "reactivate_match_thresh", 0.7)
+        self.track_conf_decay = getattr(args, "track_conf_decay", 0.95)
+        self.min_reactivate_conf = getattr(args, "min_reactivate_conf", 0.15)
+
 
     def update(self, results, img: np.ndarray | None = None, feats: np.ndarray | None = None) -> np.ndarray:
         """Update the tracker with new detections and return the current list of tracked objects."""
@@ -289,11 +322,29 @@ class BYTETracker:
         removed_stracks = []
 
         scores = results.conf
-        remain_inds = scores >= self.args.track_high_thresh
-        inds_low = scores > self.args.track_low_thresh
-        inds_high = scores < self.args.track_high_thresh
+        if self.bool_adaptive_thresh:
+            tau_h, tau_l, tau_new = self.adaptive_thresh.update(scores)
 
-        inds_second = inds_low & inds_high
+            # 动态阈值
+            remain_inds = scores >= tau_h
+            inds_low = scores > tau_l
+            inds_high = scores < tau_h
+            inds_second = inds_low & inds_high
+            print("adapt")
+            print(f"tau_h={tau_h:.4f}, tau_l={tau_l:.4f}, tau_new={tau_new:.4f}")
+        else:
+            # 固定阈值（从 yaml 读取）
+            tau_h = self.args.track_high_thresh
+            tau_l = self.args.track_low_thresh
+            tau_new = self.args.new_track_thresh
+
+            remain_inds = scores >= tau_h
+            inds_low = scores > tau_l
+            inds_high = scores < tau_h
+            inds_second = inds_low & inds_high
+            print(f"tau_h={tau_h:.4f}, tau_l={tau_l:.4f}, tau_new={tau_new:.4f}")
+
+        
         results_second = results[inds_second]
         results = results[remain_inds]
         feats_keep = feats_second = img
@@ -351,11 +402,67 @@ class BYTETracker:
                 track.re_activate(det, self.frame_id, new_id=False)
                 refind_stracks.append(track)
 
+        # for it in u_track:
+        #     track = r_tracked_stracks[it]
+        #     if track.state != TrackState.Lost:
+        #         track.mark_lost()
+        #         lost_stracks.append(track)
+        recover_low_dets = [detections_second[i] for i in _u_detection_second]
+        recover_high_dets = [detections[i] for i in u_detection]   # 注意这里的 detections 已经是未匹配高分框
+        recover_dets = recover_high_dets + recover_low_dets
+
         for it in u_track:
             track = r_tracked_stracks[it]
+            track.lost_frames += 1
+            track.track_conf *= self.track_conf_decay
+
+            track.is_occluded = self._is_occluded_track(
+                track,
+                r_tracked_stracks,
+                recover_dets
+            )
+            if track.is_occluded:
+                track.occluded_frames += 1
+            else:
+                track.occluded_frames = 0
+
             if track.state != TrackState.Lost:
                 track.mark_lost()
-                lost_stracks.append(track)
+            lost_stracks.append(track)
+        reactivate_candidates = [
+            t for t in (self.lost_stracks + lost_stracks)
+            if getattr(t, "is_occluded", False)
+            and (self.frame_id - t.end_frame) <= self.short_reactivate_frames
+            and t.track_conf >= self.min_reactivate_conf
+        ]
+
+        recover_dets = [detections[i] for i in u_detection] + [detections_second[i] for i in _u_detection_second]
+        reactivated_ids = set()
+        used_recover_det = set()
+        if reactivate_candidates and recover_dets:
+            # dists = self.get_dists(reactivate_candidates, recover_dets)
+            dists = matching.iou_distance(reactivate_candidates, recover_dets)
+            matches_re, u_re_tracks, u_re_dets = matching.linear_assignment(
+                dists, thresh=self.reactivate_match_thresh
+            )
+
+            for itracked, idet in matches_re:
+                track = reactivate_candidates[itracked]
+                det = recover_dets[idet]
+                track.re_activate(det, self.frame_id, new_id=False)
+                track.is_occluded = False
+                track.occluded_frames = 0
+                track.lost_frames = 0
+                refind_stracks.append(track)
+                used_recover_det.add(idet)
+                reactivated_ids.add(track.track_id)
+        # 1) 从本帧 lost_stracks 里清掉已经重激活的轨迹
+        lost_stracks = [t for t in lost_stracks if t.track_id not in reactivated_ids]
+
+        # 2) 只从 u_detection 里清掉被“高分框重激活”占用的那些检测                
+        num_high = len(recover_high_dets)
+        used_high_local = {j for j in used_recover_det if j < num_high}
+        u_detection = [idx for j, idx in enumerate(u_detection) if j not in used_high_local]
         # Deal with unconfirmed tracks, usually tracks with only one beginning frame
         detections = [detections[i] for i in u_detection]
         dists = self.get_dists(unconfirmed, detections)
@@ -370,7 +477,7 @@ class BYTETracker:
         # Step 4: Init new stracks
         for inew in u_detection:
             track = detections[inew]
-            if track.score < self.args.new_track_thresh:
+            if track.score < tau_new:
                 continue
             track.activate(self.kalman_filter, self.frame_id)
             activated_stracks.append(track)
@@ -467,3 +574,64 @@ class BYTETracker:
         resa = [t for i, t in enumerate(stracksa) if i not in dupa]
         resb = [t for i, t in enumerate(stracksb) if i not in dupb]
         return resa, resb
+
+    @staticmethod
+    def _tlwh_iou(box1, box2):
+        x1, y1, w1, h1 = box1
+        x2, y2, w2, h2 = box2
+        xa = max(x1, x2)
+        ya = max(y1, y2)
+        xb = min(x1 + w1, x2 + w2)
+        yb = min(y1 + h1, y2 + h2)
+        inter = max(0, xb - xa) * max(0, yb - ya)
+        union = w1 * h1 + w2 * h2 - inter + 1e-6
+        return inter / union
+
+    def _is_occluded_track(self, track, neighbor_tracks, candidate_dets):
+        max_iou = 0.0
+        for t in neighbor_tracks:
+            if t.track_id == track.track_id:
+                continue
+            max_iou = max(max_iou, self._tlwh_iou(track.tlwh, t.tlwh))
+        for d in candidate_dets:
+            max_iou = max(max_iou, self._tlwh_iou(track.tlwh, d.tlwh))
+        return max_iou > self.occlusion_iou_thresh
+
+
+import numpy as np
+
+class AdaptiveThresh:
+    def __init__(self, 
+                init_high=0.5, 
+                beta=0.8,
+                high_min=0.35, 
+                high_max=0.5,
+                low_ratio=0, 
+                new_offset=0.05):
+        self.prev_high = init_high
+        self.beta = beta
+        self.high_min = high_min
+        self.high_max = high_max
+        self.low_ratio = low_ratio
+        self.new_offset = new_offset
+
+    def update(self, scores):
+        scores = np.array(scores, dtype=float)
+        scores = scores[scores > 0.01]
+        if len(scores) < 2:
+            tau_h_raw = self.prev_high
+        else:
+            scores = np.sort(scores)[::-1]
+            gaps = scores[:-1] - scores[1:]
+            k = np.argmax(gaps)
+            tau_h_raw = scores[k]
+
+        tau_h = self.beta * self.prev_high + (1 - self.beta) * tau_h_raw
+        tau_h = 0.5
+
+
+        tau_l = max(0.1, self.low_ratio * tau_h)
+        tau_new = min(0.4, tau_h + self.new_offset)
+
+        self.prev_high = tau_h
+        return float(tau_h), float(tau_l), float(tau_new)
