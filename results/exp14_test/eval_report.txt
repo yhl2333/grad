@@ -1,0 +1,25 @@
+Cross-view Match Evaluation
+PRED_PATH = results/exp14_test/cross_match.csv
+GT_PATH   = results/exp13_reidkalam/cross_match_gt.csv
+
+说明：只在 GT 已标注的帧上评估。
+
+[已标注帧中 frame < 300]
+  标注帧数             : 17
+  GT匹配条数           : 145
+  预测匹配条数         : 131
+  TP / FP / FN         : 109 / 22 / 36
+  Precision            : 0.832061
+  Recall               : 0.751724
+  F1                   : 0.789855
+  Frame Exact Match    : 0.235294
+
+[所有已标注帧]
+  标注帧数             : 40
+  GT匹配条数           : 320
+  预测匹配条数         : 281
+  TP / FP / FN         : 214 / 67 / 106
+  Precision            : 0.761566
+  Recall               : 0.668750
+  F1                   : 0.712146
+  Frame Exact Match    : 0.150000

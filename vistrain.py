@@ -10,55 +10,55 @@ def main():
     # model = YOLO(pretrained="./pretrained/yolo11n.pt")
     
     model = YOLO(model = "ultralytics/cfg/models/11/yolo11_new.yaml")
-    model.load("./pretrained/yolo11n.pt")
+    model.load("runs/detect/origin_visdrone_cl9/weights/best.pt")
+    # print(model.names)
+
+    # # 2. 开始训练
+    # model.train(
+    #     # ===== 数据 =====
+    #     resume = True,
+    #     data="ultralytics/cfg/datasets/visdroneMot.yaml",   # 数据集配置文件
+    #     epochs=240,             # 训练轮数
+    #     imgsz=640,              # 输入尺寸（VisDrone推荐 ≥ 960）
+    #     batch=4,                # 根据显存调整
+    #     device=0,               # GPU id
+    #     cache='disk',            # 避免内存炸
+    #     workers = 2,
+    #     save=True,
+    #     show = False,
 
 
-    # 2. 开始训练
-    model.train(
-        # ===== 数据 =====
-        resume = True,
-        data="ultralytics/cfg/datasets/NewVisDrone.yaml",   # 数据集配置文件
-        epochs=240,             # 训练轮数
-        imgsz=640,              # 输入尺寸（VisDrone推荐 ≥ 960）
-        batch=4,                # 根据显存调整
-        device=0,               # GPU id
-        cache=True,            # 避免内存炸
-        workers = 2,
-        save=True,
-        show = False,
+    #     # ===== 优化器 =====
+    #     # optimizer="AdamW",      # 小目标更友好
+    #     # lr0=0.001,
+    #     # lrf=0.01,
+    #     # weight_decay=5e-4,
+    #     # warmup_epochs=5,
 
- 
-        # ===== 优化器 =====
-        # optimizer="AdamW",      # 小目标更友好
-        # lr0=0.001,
-        # lrf=0.01,
-        # weight_decay=5e-4,
-        # warmup_epochs=5,
+    #     # # ===== 数据增强 =====
+    #     # mosaic=1,
+    #     # mixup=0.1,
+    #     # scale=0.7,
+    #     # translate=0.2,
+    #     # fliplr=0.5,
+  
 
-        # # ===== 数据增强 =====
-        # mosaic=1.0,
-        # mixup=0.1,
-        # scale=0.7,
-        # translate=0.2,
-        # fliplr=0.5,
-        # close_mosaic = 10，
+    #     # # ===== Loss 权重 =====
+    #     # box=10.0,               # 小目标增强
+    #     # cls=0.5,
+    #     # dfl=1.5,
 
-        # # ===== Loss 权重 =====
-        # box=10.0,               # 小目标增强
-        # cls=0.5,
-        # dfl=1.5,
-
-        # # ===== 训练控制 =====
-        # workers=2,              # 服务器上建议 ≤4
+    #     # # ===== 训练控制 =====
+    #     # workers=2,              # 服务器上建议 ≤4
         
-        # amp=True,               # 混合精度
-        # patience=50,            # early stop
-        # save_period=10,
+    #     # amp=True,               # 混合精度
+    #     # patience=50,            # early stop
+    #     # save_period=10,
 
-        # # ===== 日志 =====
-        # project="runs/yolo11",
-        # name="yolo11_visdrone"
-    )
+    #     # # ===== 日志 =====
+    #     # project="runs/yolo11",
+    #     # name="yolo11_visdrone"
+    # )
 
 if __name__ == "__main__":
     main()

@@ -75,6 +75,20 @@ class BOTrack(STrack):
         self.features = deque([], maxlen=feat_history)
         self.alpha = 0.9
 
+        self.prev_post_mean = None
+        self.prev_post_cov = None
+
+        self.pred_mean = None
+        self.pred_cov = None
+
+        self.post_mean = None
+        self.post_cov = None
+
+        self.meas_xywh = None
+        self.innovation = None
+
+        self.matched_this_frame = False
+
     def update_features(self, feat: np.ndarray) -> None:
         """Update the feature vector and apply exponential moving average smoothing."""
         feat /= np.linalg.norm(feat)
@@ -86,8 +100,22 @@ class BOTrack(STrack):
         self.features.append(feat)
         self.smooth_feat /= np.linalg.norm(self.smooth_feat)
 
+    # def predict(self) -> None:
+    #     """Predict the object's future state using the Kalman filter to update its mean and covariance."""
+    #     mean_state = self.mean.copy()
+    #     if self.state != TrackState.Tracked:
+    #         mean_state[6] = 0
+    #         mean_state[7] = 0
+
+    #     self.mean, self.covariance = self.kalman_filter.predict(mean_state, self.covariance)
+
+
     def predict(self) -> None:
-        """Predict the object's future state using the Kalman filter to update its mean and covariance."""
+        if self.mean is not None:
+            self.prev_post_mean = self.mean.copy()
+        if self.covariance is not None:
+            self.prev_post_cov = self.covariance.copy()
+
         mean_state = self.mean.copy()
         if self.state != TrackState.Tracked:
             mean_state[6] = 0
@@ -95,17 +123,118 @@ class BOTrack(STrack):
 
         self.mean, self.covariance = self.kalman_filter.predict(mean_state, self.covariance)
 
-    def re_activate(self, new_track: BOTrack, frame_id: int, new_id: bool = False) -> None:
-        """Reactivate a track with updated features and optionally assign a new ID."""
-        if new_track.curr_feat is not None:
-            self.update_features(new_track.curr_feat)
+        self.pred_mean = self.mean.copy()
+        self.pred_cov = self.covariance.copy()
+        self.matched_this_frame = False
+
+
+
+    # def re_activate(self, new_track: BOTrack, frame_id: int, new_id: bool = False) -> None:
+    #     """Reactivate a track with updated features and optionally assign a new ID."""
+    #     if new_track.curr_feat is not None:
+    #         self.update_features(new_track.curr_feat)
+    #     super().re_activate(new_track, frame_id, new_id)
+
+    # def update(self, new_track: BOTrack, frame_id: int) -> None:
+    #     """Update the track with new detection information and the current frame ID."""
+    #     if new_track.curr_feat is not None:
+    #         self.update_features(new_track.curr_feat)
+    #     super().update(new_track, frame_id)
+
+
+    def update(self, new_track, frame_id):
+        new_tlwh = new_track.tlwh
+        meas_xywh = self.convert_coords(new_tlwh).copy()   # BOTSORT 这里是 xywh
+        self.meas_xywh = meas_xywh
+
+        prior = self.pred_mean if self.pred_mean is not None else self.mean
+        if prior is not None:
+            self.innovation = meas_xywh - prior[:4]
+        else:
+            self.innovation = np.zeros(4, dtype=np.float32)
+
+        super().update(new_track, frame_id)
+
+        self.post_mean = self.mean.copy()
+        self.post_cov = self.covariance.copy()
+        self.matched_this_frame = True
+
+
+    def re_activate(self, new_track, frame_id, new_id=False):
+        new_tlwh = new_track.tlwh
+        meas_xywh = self.convert_coords(new_tlwh).copy()
+        self.meas_xywh = meas_xywh
+
+        prior = self.pred_mean if self.pred_mean is not None else self.mean
+        if prior is not None:
+            self.innovation = meas_xywh - prior[:4]
+        else:
+            self.innovation = np.zeros(4, dtype=np.float32)
+
         super().re_activate(new_track, frame_id, new_id)
 
-    def update(self, new_track: BOTrack, frame_id: int) -> None:
-        """Update the track with new detection information and the current frame ID."""
-        if new_track.curr_feat is not None:
-            self.update_features(new_track.curr_feat)
-        super().update(new_track, frame_id)
+        self.post_mean = self.mean.copy()
+        self.post_cov = self.covariance.copy()
+        self.matched_this_frame = True
+
+
+    def activate(self, kalman_filter, frame_id):
+        super().activate(kalman_filter, frame_id)
+        self.post_mean = self.mean.copy()
+        self.post_cov = self.covariance.copy()
+        self.pred_mean = self.mean.copy()
+        self.pred_cov = self.covariance.copy()
+        self.meas_xywh = self.mean[:4].copy()
+        self.innovation = np.zeros(4, dtype=np.float32)
+        self.matched_this_frame = True
+
+
+    def xywh_to_xyxy(xywh):
+        cx, cy, w, h = map(float, xywh[:4])
+        x1 = cx - w / 2.0
+        y1 = cy - h / 2.0
+        x2 = cx + w / 2.0
+        y2 = cy + h / 2.0
+        return x1, y1, x2, y2
+
+    def get_track_kf_state(t):
+        out = {
+            "pred_xyxy": (np.nan, np.nan, np.nan, np.nan),
+            "post_xyxy": (np.nan, np.nan, np.nan, np.nan),
+            "vx": np.nan,
+            "vy": np.nan,
+            "vw": np.nan,
+            "vh": np.nan,
+            "innov_x": np.nan,
+            "innov_y": np.nan,
+            "innov_w": np.nan,
+            "innov_h": np.nan,
+            "matched": 0,
+        }
+
+        pred_mean = getattr(t, "pred_mean", None)
+        post_mean = getattr(t, "post_mean", None)
+        innovation = getattr(t, "innovation", None)
+
+        if pred_mean is not None:
+            out["pred_xyxy"] = xywh_to_xyxy(pred_mean[:4])
+
+        if post_mean is not None:
+            out["post_xyxy"] = xywh_to_xyxy(post_mean[:4])
+            if len(post_mean) >= 8:
+                out["vx"] = float(post_mean[4])
+                out["vy"] = float(post_mean[5])
+                out["vw"] = float(post_mean[6])
+                out["vh"] = float(post_mean[7])
+
+        if innovation is not None and len(innovation) >= 4:
+            out["innov_x"] = float(innovation[0])
+            out["innov_y"] = float(innovation[1])
+            out["innov_w"] = float(innovation[2])
+            out["innov_h"] = float(innovation[3])
+
+        out["matched"] = int(bool(getattr(t, "matched_this_frame", False)))
+        return out
 
     @property
     def tlwh(self) -> np.ndarray:
@@ -208,20 +337,38 @@ class BOTSORT(BYTETracker):
         else:
             return [BOTrack(xywh, s, c) for (xywh, s, c) in zip(bboxes, results.conf, results.cls)]
 
-    def get_dists(self, tracks: list[BOTrack], detections: list[BOTrack]) -> np.ndarray:
+    # def get_dists(self, tracks: list[BOTrack], detections: list[BOTrack]) -> np.ndarray:
+    #     """Calculate distances between tracks and detections using IoU and optionally ReID embeddings."""
+    #     dists = matching.iou_distance(tracks, detections)
+    #     dists_mask = dists > (1 - self.proximity_thresh)
+
+    #     if self.args.fuse_score:
+    #         dists = matching.fuse_score(dists, detections)
+
+    #     if self.args.with_reid and self.encoder is not None:
+    #         emb_dists = matching.embedding_distance(tracks, detections) / 2.0
+    #         emb_dists[emb_dists > (1 - self.appearance_thresh)] = 1.0
+    #         emb_dists[dists_mask] = 1.0
+    #         dists = np.minimum(dists, emb_dists)
+    #     return dists
+
+
+    def get_dists(self, tracks: list[BOTrack], detections: list[BOTrack], stage: str = "first") -> np.ndarray:
         """Calculate distances between tracks and detections using IoU and optionally ReID embeddings."""
-        dists = matching.iou_distance(tracks, detections)
-        dists_mask = dists > (1 - self.proximity_thresh)
+        dists = super().get_dists(tracks, detections, stage)
+        # dists = matching.iou_distance(tracks, detections)
+        # dists_mask = dists > (1 - self.proximity_thresh)
 
-        if self.args.fuse_score:
-            dists = matching.fuse_score(dists, detections)
+        # if self.args.fuse_score:
+        #     dists = matching.fuse_score(dists, detections)
 
-        if self.args.with_reid and self.encoder is not None:
-            emb_dists = matching.embedding_distance(tracks, detections) / 2.0
-            emb_dists[emb_dists > (1 - self.appearance_thresh)] = 1.0
-            emb_dists[dists_mask] = 1.0
-            dists = np.minimum(dists, emb_dists)
+        # if self.args.with_reid and self.encoder is not None:
+        #     emb_dists = matching.embedding_distance(tracks, detections) / 2.0
+        #     emb_dists[emb_dists > (1 - self.appearance_thresh)] = 1.0
+        #     emb_dists[dists_mask] = 1.0
+        #     dists = np.minimum(dists, emb_dists)
         return dists
+
 
     def multi_predict(self, tracks: list[BOTrack]) -> None:
         """Predict the mean and covariance of multiple object tracks using a shared Kalman filter."""

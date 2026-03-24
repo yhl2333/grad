@@ -1,0 +1,12 @@
+path: datasetTrack/VisDrone2019-MOT-YOLO
+
+train: images/train
+val: images/val
+test:
+
+names:
+  0: pedestrian
+  1: car
+  2: van
+  3: truck
+  4: bus

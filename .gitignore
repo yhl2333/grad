@@ -202,6 +202,7 @@ calibration_*.npy
 *.heic
 *.ico
 *.raw
+*.csv
 
 # Training logs
 args.yaml

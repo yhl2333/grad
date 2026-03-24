@@ -4,9 +4,29 @@
 # Docs: https://docs.ultralytics.com/modes/track/
 
 tracker_type: bytetrack # (str) Tracker backend: botsort|bytetrack; choose bytetrack for the classic baseline
-track_high_thresh: 0.25 # (float) First-stage match threshold; raise for cleaner tracks, lower to keep more
-track_low_thresh: 0.1 # (float) Second-stage threshold for low-score matches; balances recovery vs drift
-new_track_thresh: 0.25 # (float) Start a new track if no match ≥ this; higher reduces false tracks
+track_high_thresh: 0.5 # (float) First-stage match threshold; raise for cleaner tracks, lower to keep more
+track_low_thresh: 0.15 # (float) Second-stage threshold for low-score matches; balances recovery vs drift
+new_track_thresh: 0.3 # (float) Start a new track if no match ≥ this; higher reduces false tracks
 track_buffer: 30 # (int) Frames to keep lost tracks alive; higher handles occlusion, increases ID switches risk
 match_thresh: 0.8 # (float) Association similarity threshold (IoU/cost); tune with detector quality
 fuse_score: True # (bool) Fuse detection score with motion/IoU for matching; stabilizes weak detections
+
+
+gmc_method: sparseOptFlow     # ⭐ 关键：启用 SIFT
+
+
+
+# ===== 你自己的自适应阈值开关 =====
+adaptive_thresh: False
+# 可选：给自适应逻辑配一些参数
+# adaptive_mode: "density"          # density / conf / motion
+# adaptive_low_min: 0.1
+# adaptive_low_max: 0.15
+# adaptive_new_min: 0.18
+# adaptive_new_max: 0.35
+init_high: 0.5
+beta: 0.8
+high_min: 0.35
+high_max: 0.6
+low_ratio: 0.2
+new_offset: 0.05

@@ -30,15 +30,15 @@ def get_feature(name):
 # net.model[16].register_forward_hook(get_feature("yolov11n_P3"))
 # net.model[19].register_forward_hook(get_feature("yolo11n_P4"))
 # net.model[22].register_forward_hook(get_feature("yolo11n_P5"))
-net.model[19].register_forward_hook(get_feature("yolov11n_P2_1"))
-# net.model[22].register_forward_hook(get_feature("yolov11n_P2_p3_1"))
+net.model[19].register_forward_hook(get_feature("rechengxiang"))
+net.model[22].register_forward_hook(get_feature("rechengxiang_1"))
 # net.model[25].register_forward_hook(get_feature("yolo11n_P4_10"))
 
 # experient_fig/yolo11n/Snipaste_2026-01-20_14-00-47.png
 # experient_fig/bytetrack_workbad/000508.jpg
 # experient_fig/yolo11n/0000003_00231_d_0000016.jpg
 # 读取图片
-img = cv2.imread("experient_fig/yolo11n/0000074_13313_d_0000026.jpg")
+img = cv2.imread("experient_fig/bytetrack/bytetrack_workbad/000519.jpg")
 img = cv2.resize(img, (640,640))
 img = img[:,:,::-1] / 255.0
 img = np.transpose(img,(2,0,1))

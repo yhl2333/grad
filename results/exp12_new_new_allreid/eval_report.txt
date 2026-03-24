@@ -1,0 +1,25 @@
+Cross-view Match Evaluation
+PRED_PATH = results/exp12_new_new_allreid/reid_top5_then_geometry_match.csv
+GT_PATH   = results/exp13_reidkalam/cross_match_gt.csv
+
+说明：只在 GT 已标注的帧上评估。
+
+[已标注帧中 frame < 300]
+  标注帧数             : 17
+  GT匹配条数           : 145
+  预测匹配条数         : 129
+  TP / FP / FN         : 94 / 35 / 51
+  Precision            : 0.728682
+  Recall               : 0.648276
+  F1                   : 0.686131
+  Frame Exact Match    : 0.176471
+
+[所有已标注帧]
+  标注帧数             : 40
+  GT匹配条数           : 320
+  预测匹配条数         : 291
+  TP / FP / FN         : 190 / 101 / 130
+  Precision            : 0.652921
+  Recall               : 0.593750
+  F1                   : 0.621931
+  Frame Exact Match    : 0.100000
