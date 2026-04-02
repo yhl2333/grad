@@ -9,7 +9,7 @@ def main():
     # 可选：yolo11n.pt / yolo11s.pt / yolo11m.pt / yolo11l.pt
     # model = YOLO(pretrained="./pretrained/yolo11n.pt")
     
-    model = YOLO(model = "ultralytics/cfg/models/11/yolo11_new.yaml")
+    model = YOLO(model = "ultralytics/cfg/models/11/yolo11_SimAM_EUCB.yaml")
     model.load("./pretrained/yolo11n.pt")
 
 
@@ -17,13 +17,13 @@ def main():
     model.train(
         # ===== 数据 =====
         resume = True,
-        data="ultralytics/cfg/datasets/visdroneMot.yaml",   # 数据集配置文件
+        data="ultralytics/cfg/datasets/NewVisDrone.yaml",   # 数据集配置文件
         epochs=240,             # 训练轮数
         imgsz=640,              # 输入尺寸（VisDrone推荐 ≥ 960）
         batch=4,                # 根据显存调整
         device=0,               # GPU id
         cache='disk',           # 避免内存炸
-        workers = 2,
+        workers = 1,
         save=True,
         show = False,
 

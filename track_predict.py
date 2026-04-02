@@ -19,7 +19,7 @@ model.model.names = {
 # 2. 图片目录
 # "./testdet/jpg"
 # /disk2/yhl/ultralytics/experient_fig/track/天桥右1.mp4
-img_dir = Path("/disk2/yhl/ultralytics/experient_fig/track/天桥右1.mp4")
+img_dir = Path("datasetTrack/Multi-Drone-Multi-Object-Detection-and-Tracking/test/1/62-1")
 start = time.time()
 # 3. 推理并保存结果
 results = model.track(

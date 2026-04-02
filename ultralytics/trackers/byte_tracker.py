@@ -317,9 +317,11 @@
 #         # Predict the current location with KF
 #         self.multi_predict(strack_pool)
 #         if hasattr(self, "gmc") and img is not None:
-#             # use try-except here to bypass errors from gmc module
 #             try:
-#                 warp = self.gmc.apply(img, results.xyxy)
+#                 if self.gmc.cheap_motion_gate(img,0.07):   # 你的廉价门控
+#                     warp = self.gmc.apply(img, results.xyxy)
+#                 else:
+#                     warp = np.eye(2, 3)
 #             except Exception:
 #                 warp = np.eye(2, 3)
 #             STrack.multi_gmc(strack_pool, warp)

@@ -51,6 +51,7 @@ class GMC:
 
         self.method = method
         self.downscale = max(1, downscale)
+        self.prev_gate_frame = None
 
         if self.method == "orb":
             self.detector = cv2.FastFeatureDetector_create(20)
@@ -337,3 +338,28 @@ class GMC:
         self.prevKeyPoints = None
         self.prevDescriptors = None
         self.initializedFirstFrame = False
+
+
+
+    def cheap_motion_gate(self, raw_frame, trans_thr=0.1):
+        gray = cv2.cvtColor(raw_frame, cv2.COLOR_BGR2GRAY) if raw_frame.ndim == 3 else raw_frame
+        small = cv2.resize(gray, (160, 90))
+        small = cv2.GaussianBlur(small, (3, 3), 0)
+
+        if self.prev_gate_frame is None:
+            self.prev_gate_frame = small.copy()
+            return True   # 第一帧后，先允许下一步正常初始化
+
+        # 用相位相关做一个很便宜的全局平移估计
+        shift, response = cv2.phaseCorrelate(
+            np.float32(self.prev_gate_frame),
+            np.float32(small)
+        )
+        dx, dy = shift
+
+        self.prev_gate_frame = small.copy()
+
+        # small 图上的位移阈值
+        motion = (dx * dx + dy * dy) ** 0.5
+        print(motion)
+        return motion >= trans_thr

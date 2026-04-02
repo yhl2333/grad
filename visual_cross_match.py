@@ -163,12 +163,15 @@ def draw_detection(img, det, color, label=None, thickness=2):
     cv2.putText(img, label, (x1 + 3, box_y2 - 4), font, scale, (0, 0, 0), txt_thickness)
 
 
-def put_header(img, text, color=(255, 255, 255)):
-    cv2.putText(
-        img, text, (15, 30),
-        cv2.FONT_HERSHEY_SIMPLEX, 0.9, color, 2
-    )
+def put_header(img, text, color=(0, 255, 255)):
+    org = (15, 30)
+    font = cv2.FONT_HERSHEY_SIMPLEX
+    scale = 0.9
 
+    # 黑色描边
+    cv2.putText(img, text, org, font, scale, (0, 0, 0), 4)
+    # 黄色正文
+    cv2.putText(img, text, org, font, scale, color, 2)
 
 def build_track_lookup(dets):
     return {d["track_id"]: d for d in dets}
@@ -244,10 +247,10 @@ def visualize_one_frame(
         vis_b = cv2.copyMakeBorder(vis_b, 0, pad, 0, 0, cv2.BORDER_CONSTANT, value=(30, 30, 30))
 
     sep = 255 * (np.ones((h, separator_width, 3), dtype=np.uint8))
-    canvas = np.concatenate([vis_a, sep, vis_b], axis=1)
+    canvas = np.concatenate([vis_b, sep, vis_a], axis=1)
 
     # 在拼接图上画匹配连线
-    offset_x_b = wa + separator_width
+    offset_x_a = wb + separator_width
     for m in matches:
         ida = m["track_id_a"]
         idb = m["track_id_b"]
@@ -259,10 +262,12 @@ def visualize_one_frame(
         db = det_map_b[idb]
         color = get_color_by_pair(ida, idb)
 
-        pt_a = (int(round(da["cx"])), int(round((da["y1"] + da["y2"]) / 2)))
-        pt_b = (offset_x_b + int(round(db["cx"])), int(round((db["y1"] + db["y2"]) / 2)))
+        # 现在 B 在左边，所以 B 不加偏移
+        pt_b = (int(round(db["cx"])), int(round((db["y1"] + db["y2"]) / 2)))
+        # A 在右边，所以 A 要加偏移
+        pt_a = (offset_x_a + int(round(da["cx"])), int(round((da["y1"] + da["y2"]) / 2)))
 
-        cv2.line(canvas, pt_a, pt_b, color, 2)
+        cv2.line(canvas, pt_b, pt_a, color, 2)
 
         mx = (pt_a[0] + pt_b[0]) // 2
         my = (pt_a[1] + pt_b[1]) // 2
@@ -377,15 +382,39 @@ def visualize_cross_match(
 if __name__ == "__main__":
     import numpy as np
 
-    # -------------- 你需要修改这里 --------------
-    frames_dir_a = r"experient_fig/doublesight/frame1"
-    frames_dir_b = r"experient_fig/doublesight/frame2"
+    # # -------------- 你需要修改这里 --------------
+    # frames_dir_a = r"experient_fig/doublesight/frame1"
+    # frames_dir_b = r"experient_fig/doublesight/frame2"
 
-    track_txt_a = r"experient_fig/doublesight/droneA_tracks.txt"
-    track_txt_b = r"experient_fig/doublesight/droneB_tracks.txt"
-    cross_match_csv = r"results/exp13_reidkalam/cross_match.csv"
+    # track_txt_a = r"experient_fig/doublesight_reidkalm/droneA_tracks.txt"
+    # track_txt_b = r"experient_fig/doublesight_reidkalm/droneB_tracks.txt"
+    # cross_match_csv = r"results/exp14_test/cross_match.csv"
 
-    output_dir = r"results/exp13_reidkalam"
+    # output_dir = r"results/exp14_reidkalam"
+
+
+
+    #     # -------------- 你需要修改这里 --------------
+    # frames_dir_a = r"datasetTrack/Multi-Drone-Multi-Object-Detection-and-Tracking/test/1/62-1"
+    # frames_dir_b = r"datasetTrack/Multi-Drone-Multi-Object-Detection-and-Tracking/test/2/62-2"
+
+    # track_txt_a = r"experient_fig/doubleslight_MTDT/droneA_tracks.txt"
+    # track_txt_b = r"experient_fig/doubleslight_MTDT/droneB_tracks.txt"
+    # cross_match_csv = r"results/exp_local_graph_fixed_axes_v3/cross_match.csv"
+
+    # output_dir = r"results/exp_local_graph_fixed_axes_v3"
+
+
+        # -------------- 你需要修改这里 --------------
+    frames_dir_a = r"datasetTrack/Multi-Drone-Multi-Object-Detection-and-Tracking/test/1/34-1"
+    frames_dir_b = r"datasetTrack/Multi-Drone-Multi-Object-Detection-and-Tracking/test/2/34-2"
+
+    track_txt_a = r"experient_fig/doubleslight_MTDT2/droneA_tracks.txt"
+    track_txt_b = r"experient_fig/doubleslight_MTDT2/droneB_tracks.txt"
+    cross_match_csv = r"results/exp_local_gragh_fixed_axes_2/cross_match.csv"
+
+    output_dir = r"results/exp_local_gragh_fixed_axes_2"
+
 
     # 如果你的轨迹文件是：
     # frame,track_id,cls,x1,y1,x2,y2,cx,cy_bottom,conf

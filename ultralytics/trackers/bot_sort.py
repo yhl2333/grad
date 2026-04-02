@@ -143,6 +143,8 @@ class BOTrack(STrack):
 
 
     def update(self, new_track, frame_id):
+        if new_track.curr_feat is not None:
+            self.update_features(new_track.curr_feat)
         new_tlwh = new_track.tlwh
         meas_xywh = self.convert_coords(new_tlwh).copy()   # BOTSORT 这里是 xywh
         self.meas_xywh = meas_xywh
@@ -161,6 +163,8 @@ class BOTrack(STrack):
 
 
     def re_activate(self, new_track, frame_id, new_id=False):
+        if new_track.curr_feat is not None:
+            self.update_features(new_track.curr_feat)
         new_tlwh = new_track.tlwh
         meas_xywh = self.convert_coords(new_tlwh).copy()
         self.meas_xywh = meas_xywh
@@ -260,6 +264,10 @@ class BOTrack(STrack):
         for i, (mean, cov) in enumerate(zip(multi_mean, multi_covariance)):
             stracks[i].mean = mean
             stracks[i].covariance = cov
+
+            # stracks[i].pred_mean = mean.copy()
+            # stracks[i].pred_cov = cov.copy()
+            # stracks[i].matched_this_frame = False
 
     def convert_coords(self, tlwh: np.ndarray) -> np.ndarray:
         """Convert tlwh bounding box coordinates to xywh format."""

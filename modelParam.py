@@ -6,13 +6,13 @@ import pandas as pd
 
 
 # 1. 加载模型（换成你自己的 .pt 也可以）
-model = YOLO("runs/detect/origin_visdrone_cl9/weights/best.pt")
+model = YOLO("runs/detect/train82/weights/best.pt")
 model.info(detailed=True)
 
 
 
 # 文件路径
-file_path = "runs/detect/origin_visdrone_cl9/results.csv"   # 改成你的文件路径，也可以是 results.csv
+file_path = "runs/detect/train82/results.csv"   # 改成你的文件路径，也可以是 results.csv
 
 # 读取文件
 df = pd.read_csv(file_path)

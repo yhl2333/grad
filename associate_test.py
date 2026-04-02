@@ -915,11 +915,11 @@ def save_matches_csv(matches, save_path):
 # =========================
 if __name__ == "__main__":
     # -------- 输入 --------
-    txt_a = "experient_fig/doublesight_reid/droneA_tracks.txt"
-    txt_b = "experient_fig/doublesight_reid/droneB_tracks.txt"
+    txt_a = "experient_fig/doublesight_reidkalm/droneA_tracks.txt"
+    txt_b = "experient_fig/doublesight_reidkalm/droneB_tracks.txt"
 
-    reid_npz_a = "experient_fig/doublesight_reid/droneA_reid.npz"
-    reid_npz_b = "experient_fig/doublesight_reid/droneB_reid.npz"
+    reid_npz_a = "experient_fig/doublesight_reidkalm/droneA_reid.npz"
+    reid_npz_b = "experient_fig/doublesight_reidkalm/droneB_reid.npz"
 
     # Kalman sidecar（不开速度方向时可为 None）
     # kf_txt_a = None
@@ -1013,9 +1013,25 @@ if __name__ == "__main__":
 
     )
 
+    import time
     # -------- 执行匹配 --------
     matcher = FanSeqChainMatcher(cfg)
+    t0 = time.perf_counter()
     matches = matcher.run(tracks_a, tracks_b, img_size_a, img_size_b)
+    t1 = time.perf_counter()
+
+
+    elapsed = t1 - t0
+
+    # 方案1：按总处理帧数统计
+    all_frames = sorted(set(tracks_a.keys()) | set(tracks_b.keys()))
+    num_frames = len(all_frames)
+    fps = num_frames / elapsed if elapsed > 0 else 0.0
+
+    print(f"[Timing] matching time = {elapsed:.4f} s")
+    print(f"[Timing] frames = {num_frames}")
+    print(f"[Timing] matching FPS = {fps:.2f}")
+
 
     # -------- 保存 --------
     save_matches_csv(matches, "results/exp14_test/cross_match.csv")

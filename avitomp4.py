@@ -35,7 +35,7 @@
 import subprocess
 from pathlib import Path
 
-avi_path = Path("runs/detect/track89/天桥右1.avi")
+avi_path = Path("runs/detect/track112/天桥右1.avi")
 save_path = avi_path.with_suffix(".mp4")
 
 cmd = [

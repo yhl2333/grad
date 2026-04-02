@@ -258,8 +258,8 @@ if __name__ == "__main__":
         model_path="runs/detect/v6.4_n_p2_shanp5_cl3_SimAM_EUCB/weights/best.pt",
         frames_dir="experient_fig/doublesight/frame2",
         tracker_config="ultralytics/cfg/trackers/botsort.yaml",
-        output_txt="experient_fig/doublesight_reid/droneB_tracks.txt",
-        output_reid_npz="experient_fig/doublesight_reid/droneB_reid.npz",
+        output_txt="experient_fig/double_reid_test/droneB_tracks.txt",
+        output_reid_npz="experient_fig/doublesight_reidkalm/droneB_reid.npz",
         conf_thres=0.25,
         iou_thres=0.5,
         classes=[3]

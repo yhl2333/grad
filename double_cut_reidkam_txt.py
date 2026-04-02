@@ -279,14 +279,28 @@ def save_track_txt_from_frames(
         )
 
 
+# if __name__ == "__main__":
+#     save_track_txt_from_frames(
+#         model_path="runs/detect/v6.4_n_p2_shanp5_cl3_SimAM_EUCB/weights/best.pt",
+#         frames_dir="experient_fig/doublesight/frame1",
+#         tracker_config="ultralytics/cfg/trackers/botsort.yaml",
+#         output_txt="experient_fig/doublesight_reidkalm/droneA_tracks.txt",
+#         output_reid_npz="experient_fig/doublesight_reidkalm/droneA_reid.npz",
+#         output_kf_txt="experient_fig/doublesight_reidkalm/droneA_kf.txt",
+#         conf_thres=0.25,
+#         iou_thres=0.5,
+#         classes=[3]
+#     )
+
+
 if __name__ == "__main__":
     save_track_txt_from_frames(
         model_path="runs/detect/v6.4_n_p2_shanp5_cl3_SimAM_EUCB/weights/best.pt",
-        frames_dir="experient_fig/doublesight/frame1",
+        frames_dir="datasetTrack/Multi-Drone-Multi-Object-Detection-and-Tracking/test/2/34-2",
         tracker_config="ultralytics/cfg/trackers/botsort.yaml",
-        output_txt="experient_fig/doublesight_reidkalm/droneA_tracks.txt",
-        output_reid_npz="experient_fig/doublesight_reidkalm/droneA_reid.npz",
-        output_kf_txt="experient_fig/doublesight_reidkalm/droneA_kf.txt",
+        output_txt="experient_fig/doubleslight_MTDT2/droneB_tracks.txt",
+        output_reid_npz="experient_fig/doubleslight_MTDT2/droneB_reid.npz",
+        output_kf_txt="experient_fig/doubleslight_MTDT2/droneB_kf.txt",
         conf_thres=0.25,
         iou_thres=0.5,
         classes=[3]
