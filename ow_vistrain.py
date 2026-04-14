@@ -9,7 +9,7 @@ def main():
     # 可选：yolo11n.pt / yolo11s.pt / yolo11m.pt / yolo11l.pt
     # model = YOLO(pretrained="./pretrained/yolo11n.pt")
     
-    model = YOLO(model = "ultralytics/cfg/models/11/yolo11_SimAM_EUCB.yaml")
+    model = YOLO(model = "ultralytics/cfg/models/11/yolo11_p2-p5.yaml")
     model.load("./pretrained/yolo11n.pt")
 
 
@@ -23,7 +23,7 @@ def main():
         batch=4,                # 根据显存调整
         device=0,               # GPU id
         cache='disk',           # 避免内存炸
-        workers = 1,
+        workers = 2,
         save=True,
         show = False,
 

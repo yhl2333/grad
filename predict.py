@@ -39,7 +39,7 @@ def print_head_params(model: YOLO):
 # runs/detect/v6.4_n_p2_shanp5_cl3_SimAM_EUCB/weights/best.pt
 # /disk2/yhl/ultralytics/ultralytics/runs/detect/n_cl3_640/weights/best.pt
 # 1. 加载模型（换成你自己的 .pt 也可以）
-model = YOLO("/disk2/yhl/ultralytics/ultralytics/runs/detect/n_cl3_640/weights/best.pt")
+model = YOLO("runs/detect/v6.4_n_p2_shanp5_cl3_SimAM_EUCB/weights/best.pt")
 # print_head_params(model)
 
 print("before:", model.names)
@@ -56,7 +56,7 @@ print("after:", model.model.names)
 
 # 2. 图片目录
 # "./testdet/jpg"
-img_dir = Path("/disk2/yhl/ultralytics/datasets/VisDrone/images/train/0000329_02601_d_0000778.jpg")
+img_dir = Path("experient_fig/yolo11n")
 
 # 3. 推理并保存结果
 results = model(

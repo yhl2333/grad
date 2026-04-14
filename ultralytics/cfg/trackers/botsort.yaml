@@ -17,7 +17,7 @@ gmc_method: sparseOptFlow # (str) Global motion compensation: sparseOptFlow|orb|
 # ReID model related thresh
 proximity_thresh: 0.4 # (float) Min IoU to consider tracks proximate for ReID; higher is stricter
 appearance_thresh: 0.8 # (float) Min appearance similarity for ReID; raise to avoid identity swaps
-with_reid: true # (bool) Enable ReID model use; needs extra model and compute
+with_reid: false # (bool) Enable ReID model use; needs extra model and compute
 model: auto # (str) ReID model name/path; "auto" uses detector features if available
 
 
@@ -40,18 +40,25 @@ new_offset: 0.05
 
 
 
-# # 新增的
-# occlusion_iou_thresh: 0.25
-# short_reactivate_frames: 30
-# reactivate_match_thresh: 0.7
-# track_conf_decay: 0.97
-# min_reactivate_conf: 0.15
 
-oa_use_gm: true
+
+oa_use_gm: false
 oa_sigma_x: 0.25
 oa_sigma_y: 0.20
 oa_beta: 0.1
 oa_depth_margin: 5.0
 oa_occ_gate: 0.05
 oa_bam_min_alpha: 0.15
-oa_second_match_thresh: 0.5
+oa_second_match_thresh: 0.4
+
+
+
+
+# oa_use_gm: false 
+# oa_sigma_x: 0.25 
+# oa_sigma_y: 0.20 
+# oa_beta: 0.1 
+# oa_depth_margin: 5.0 
+# oa_occ_gate: 0.05 
+# oa_bam_min_alpha: 0.15 
+# oa_second_match_thresh: 0.5

@@ -1,0 +1,20 @@
+# Ultralytics AGPL-3.0 License - https://ultralytics.com/license
+# MOT17 detection dataset
+# Example usage:
+# yolo detect train model=yolo11n.pt data=ultralytics/cfg/datasets/MOT17.yaml imgsz=640 epochs=100
+
+# dataset root dir
+path: /disk2/datasets/MOT17_yolo
+
+# train/val/test can be:
+# 1) a directory
+# 2) a txt file with image paths
+# 3) a list of directories / txt files
+
+train: images/train
+val: images/val
+test: images/test   # optional, can be removed if you do not use test
+
+# classes
+names:
+  0: person

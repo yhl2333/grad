@@ -10,7 +10,7 @@
 # from .basetrack import BaseTrack, TrackState
 # from .utils import matching
 # from .utils.kalman_filter import KalmanFilterXYAH
-# import time
+
 
 # class STrack(BaseTrack):
 #     """Single object tracking representation that uses Kalman filtering for state estimation.
@@ -279,13 +279,11 @@
 #         self.kalman_filter = self.get_kalmanfilter()
 #         gmc_method = getattr(args, "gmc_method", "sparseOptFlow")
 #         self.gmc = GMC(method=gmc_method)
-#         self._time_sum = 0.0
-#         self._time_count = 0
+
 #         self.reset_id()
 
 #     def update(self, results, img: np.ndarray | None = None, feats: np.ndarray | None = None) -> np.ndarray:
 #         """Update the tracker with new detections and return the current list of tracked objects."""
-#         t0 = time.perf_counter()
 #         self.frame_id += 1
 #         activated_stracks = []
 #         refind_stracks = []
@@ -395,19 +393,6 @@
 #         if len(self.removed_stracks) > 1000:
 #             self.removed_stracks = self.removed_stracks[-1000:]  # clip removed stracks to 1000 maximum
 
-
-#         dt = (time.perf_counter() - t0) * 1000.0
-#         self._time_sum += dt
-#         self._time_count += 1
-
-#         if self._time_count % 100 == 0:
-#             print(
-#                 f"[Tracker] avg update time: "
-#                 f"{self._time_sum / self._time_count:.3f} ms/frame "
-#                 f"({1000.0 / (self._time_sum / self._time_count):.2f} FPS)"
-#             )
-
-
 #         return np.asarray([x.result for x in self.tracked_stracks if x.is_activated], dtype=np.float32)
 
 #     def get_kalmanfilter(self) -> KalmanFilterXYAH:
@@ -498,7 +483,7 @@ from __future__ import annotations
 from typing import Any
 
 import numpy as np
-import time
+
 from ..utils import LOGGER
 from ..utils.ops import xywh2ltwh
 from .basetrack import BaseTrack, TrackState
@@ -811,8 +796,6 @@ class BYTETracker:
         self.args = args
         self.max_time_lost = int(frame_rate / 30.0 * args.track_buffer)
         self.kalman_filter = self.get_kalmanfilter()
-        self._time_sum = 0.0
-        self._time_count = 0
         self.reset_id()
 
         # ===== OA-SORT add: default hyper-params =====
@@ -834,7 +817,6 @@ class BYTETracker:
 
     def update(self, results, img: np.ndarray | None = None, feats: np.ndarray | None = None) -> np.ndarray:
         """Update the tracker with new detections and return the current list of tracked objects."""
-        t0 = time.perf_counter()
         self.frame_id += 1
         activated_stracks = []
         refind_stracks = []
@@ -983,17 +965,6 @@ class BYTETracker:
 
         # ===== OA-SORT insert #4: OAM on latest observations for next-frame BAM =====
         self._update_obs_occlusion(self.tracked_stracks)
-
-        dt = (time.perf_counter() - t0) * 1000.0
-        self._time_sum += dt
-        self._time_count += 1
-
-        if self._time_count % 100 == 0:
-            print(
-                f"[Tracker] avg update time: "
-                f"{self._time_sum / self._time_count:.3f} ms/frame "
-                f"({1000.0 / (self._time_sum / self._time_count):.2f} FPS)"
-            )
 
         return np.asarray([x.result for x in self.tracked_stracks if x.is_activated], dtype=np.float32)
 

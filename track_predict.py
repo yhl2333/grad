@@ -19,16 +19,15 @@ model.model.names = {
 # 2. 图片目录
 # "./testdet/jpg"
 # /disk2/yhl/ultralytics/experient_fig/track/天桥右1.mp4
-img_dir = Path("datasetTrack/Multi-Drone-Multi-Object-Detection-and-Tracking/test/1/62-1")
+img_dir = Path("experient_fig/doublesight/天桥右1.mp4")
 start = time.time()
 # 3. 推理并保存结果
 results = model.track(
     source=str(img_dir),
     conf=0.25,
-    save=True,
+    save=False,
     tracker ="botsort.yaml",
     persist=True,
-
 
 )
 

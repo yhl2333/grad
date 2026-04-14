@@ -465,7 +465,7 @@ EXTRACT_ROOT = PROJECT_ROOT / "datasetTrack" / "extracted"
 VAL_ROOT = EXTRACT_ROOT / "VisDrone2019-MOT-val"
 
 # 改成你自己的 best.pt 路径
-MODEL_PATH = PROJECT_ROOT / "runs/detect/origin_visdrone_cl9/weights/best.pt"
+MODEL_PATH = PROJECT_ROOT / "runs/detect/origin_cl9_p2shanp5_sim_EUCB/weights/best.pt"
 
 # 总实验根目录（每次运行会自动创建 exp001 / exp002 / ...）
 RUNS_ROOT = PROJECT_ROOT / "runs" / "visdrone_mot"
